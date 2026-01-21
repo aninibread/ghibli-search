@@ -2,7 +2,7 @@
 
 A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare AI.
 
-**[Live Demo](https://ghibli-search.anini.workers.dev/)**
+**Live Demo:** [ghibli-search.anini.workers.dev](https://ghibli-search.anini.workers.dev/)
 
 <p align="center">
   <img src="assets/demo-search.png" alt="Search interface" width="45%">
@@ -14,17 +14,30 @@ A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare A
 
 - **Semantic search** - Find scenes using natural language queries like "flying through clouds" or "rainy day"
 - **Image search** - Upload an image to find visually similar Ghibli scenes
-- **Query rewriting** - AI-powered query enhancement for better results
-- **Lightbox view** - View full-size images with movie details and links to official Studio Ghibli pages
 
 ## Architecture
 
 ![Architecture](assets/architecture.png)
 
+The app runs entirely on Cloudflare's Developer Platform:
+
+**Search Flow:**
+- **Text search** - Queries go through `/api/rewrite-query` (Llama 3.1 8B enhances the query) → `/api/search` (AI Search performs vector search) → Results returned to browser
+- **Image search** - Uploaded images go to `/api/analyze-image` (Workers AI converts image to text description) → `/api/rewrite-query` → `/api/search` → Results
+
+**Asset Delivery:**
+- **Thumbnails** (`/thumbnails/*`) - Pre-generated 480px WebP images (~21MB total) served from R2 for fast grid loading
+- **Full images** (`/images/*`) - Original high-resolution PNGs (~3.1GB total) served from R2 for lightbox view
+
+**Backend Services:**
+- **Cloudflare R2** - Object storage for 1,300+ movie stills
+- **Cloudflare AI Search** - Vector search index for semantic image retrieval
+- **Workers AI** - Llama 3.1 8B for query rewriting, toMarkdown for image-to-text conversion
+
 ## Tech Stack
 
 - [React Router 7](https://reactrouter.com/) - Full-stack React framework
-- [Cloudflare Workers](https://workers.cloudflare.com/) - Edge runtime
+- [Cloudflare Workers](https://workers.cloudflare.com/) - Serverless functions
 - [Cloudflare AI Search (AutoRAG)](https://developers.cloudflare.com/ai-search/) - Semantic search over images
 - [Cloudflare R2](https://developers.cloudflare.com/r2/) - Image storage
 - [TailwindCSS 4](https://tailwindcss.com/) - Styling

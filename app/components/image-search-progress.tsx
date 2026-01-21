@@ -88,34 +88,7 @@ export function ImageSearchProgress({ state, onRetry }: ImageSearchProgressProps
           </details>
         </div>
 
-        {/* Mobile: floating button above search bar - account for search bar height (~4.5rem) + bottom-8 (2rem) + gap */}
-        <div className="sm:hidden fixed bottom-[calc(7rem+env(safe-area-inset-bottom,0px))] left-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <details className="group">
-            <summary className="cursor-pointer list-none flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-600 px-3 py-2 rounded-full border border-slate-200 shadow-md text-sm">
-              <svg 
-                className="w-3 h-3 transition-transform group-open:rotate-90" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span>How I found these</span>
-            </summary>
-            <div className="absolute left-0 bottom-full mb-2 p-4 bg-white/95 backdrop-blur-sm rounded-xl border border-slate-200 shadow-lg space-y-3 w-[calc(100vw-2rem)] max-h-[50vh] overflow-y-auto">
-              <div>
-                <p className="text-xs text-slate-400 mb-1">What I saw:</p>
-                <p className="text-slate-600 italic text-sm leading-relaxed">{description}</p>
-              </div>
-              {searchQuery && (
-                <div>
-                  <p className="text-xs text-slate-400 mb-1">What I searched:</p>
-                  <p className="text-slate-700 font-serif">{searchQuery}</p>
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
+        {/* Mobile "done" state is now rendered in SearchHeader via MobileImageSearchProgress */}
       </>
     );
   }
@@ -204,23 +177,110 @@ export function ImageSearchProgress({ state, onRetry }: ImageSearchProgressProps
         )}
       </div>
 
-      {/* Mobile: fixed above search bar, stacking bottom to top - account for search bar height (~4.5rem) + bottom-8 (2rem) + gap */}
-      <div className="sm:hidden fixed bottom-[calc(7rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-40 flex flex-col-reverse gap-2 items-start">
-        {/* Step 3: Searching - at bottom (closest to search bar) */}
-        {(step === 'searching' || (step === 'done' && collapseStage < 1)) && (
-          <div className={`bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm ${getCollapseClass(1)}`}>
-            <p className="text-sm text-slate-500">
+      {/* Mobile progress is now rendered in SearchHeader via MobileImageSearchProgress */}
+    </>
+  );
+}
+
+// Mobile progress component to be rendered inside SearchHeader (above search bar)
+export function MobileImageSearchProgress({ state, onRetry }: ImageSearchProgressProps) {
+  const { step, description, searchQuery, error } = state;
+  const [collapseStage, setCollapseStage] = useState(() => step === 'done' ? 4 : 0);
+  const prevStepRef = useRef(step);
+  const hasMountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      if (step === 'done') return;
+    }
+
+    if (step === 'analyzing') {
+      setCollapseStage(0);
+    } else if (step === 'done' && prevStepRef.current !== 'done' && prevStepRef.current !== 'idle') {
+      setCollapseStage(1);
+      const timer1 = setTimeout(() => setCollapseStage(2), 150);
+      const timer2 = setTimeout(() => setCollapseStage(3), 300);
+      const timer3 = setTimeout(() => setCollapseStage(4), 500);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    } else if (step === 'idle') {
+      setCollapseStage(0);
+    }
+    prevStepRef.current = step;
+  }, [step]);
+
+  if (step === 'idle') return null;
+
+  const getCollapseClass = (stage: number) => {
+    if (collapseStage >= stage) {
+      return 'opacity-0 max-h-0 overflow-hidden transition-all duration-200 ease-out';
+    }
+    return 'opacity-100 max-h-40 transition-all duration-200 ease-out';
+  };
+
+  // Collapsed summary when done
+  if (step === 'done' && collapseStage === 4 && description) {
+    return (
+      <div className="mb-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <details className="group">
+          <summary className="cursor-pointer list-none flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-600 px-3 py-2 rounded-full border border-slate-200 shadow-sm text-sm w-fit">
+            <svg 
+              className="w-3 h-3 transition-transform group-open:rotate-90" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span>How I found these</span>
+          </summary>
+          <div className="mt-2 p-4 bg-white/95 backdrop-blur-sm rounded-xl border border-slate-200 shadow-lg space-y-3 max-h-[50vh] overflow-y-auto">
+            <div>
+              <p className="text-xs text-slate-400 mb-1">What I saw:</p>
+              <p className="text-slate-600 italic text-sm leading-relaxed">{description}</p>
+            </div>
+            {searchQuery && (
+              <div>
+                <p className="text-xs text-slate-400 mb-1">What I searched:</p>
+                <p className="text-slate-700 font-serif">{searchQuery}</p>
+              </div>
+            )}
+          </div>
+        </details>
+      </div>
+    );
+  }
+
+  // Progress steps
+  return (
+    <div className="mb-3 flex flex-col gap-2">
+      {/* Step 1: Analyzing Image */}
+      <div className={getCollapseClass(3)}>
+        <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm w-fit">
+          <p className="text-sm text-slate-500">
+            {step === 'analyzing' ? (
               <span className="inline-flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" />
-                Finding similar moments...
+                Reading image...
               </span>
-            </p>
-          </div>
-        )}
+            ) : description ? (
+              <span>
+                <span className="text-slate-400">Saw: </span>
+                <span className="italic text-slate-600">{description.slice(0, 40)}...</span>
+              </span>
+            ) : null}
+          </p>
+        </div>
+      </div>
 
-        {/* Step 2: Rewriting Query */}
-        {(step === 'rewriting' || step === 'searching' || step === 'done' || searchQuery) && (
-          <div className={`bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm max-w-full ${getCollapseClass(2)}`}>
+      {/* Step 2: Rewriting Query */}
+      {(step === 'rewriting' || step === 'searching' || step === 'done' || searchQuery) && (
+        <div className={getCollapseClass(2)}>
+          <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm w-fit max-w-full">
             <p className="text-sm text-slate-500 truncate">
               {step === 'rewriting' ? (
                 <span className="inline-flex items-center gap-2">
@@ -235,41 +295,38 @@ export function ImageSearchProgress({ state, onRetry }: ImageSearchProgressProps
               ) : null}
             </p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Step 1: Analyzing Image - at top */}
-        <div className={`bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm max-w-full ${getCollapseClass(3)}`}>
-          <p className="text-sm text-slate-500 truncate">
-            {step === 'analyzing' ? (
+      {/* Step 3: Searching */}
+      {(step === 'searching' || (step === 'done' && collapseStage < 1)) && (
+        <div className={getCollapseClass(1)}>
+          <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm w-fit">
+            <p className="text-sm text-slate-500">
               <span className="inline-flex items-center gap-2">
                 <span className="inline-block w-1.5 h-1.5 bg-slate-400 rounded-full animate-pulse" />
-                Reading image...
+                Finding similar moments...
               </span>
-            ) : description ? (
-              <span className="truncate">
-                <span className="text-slate-400">Saw: </span>
-                <span className="italic text-slate-600">{description.slice(0, 50)}...</span>
-              </span>
-            ) : null}
-          </p>
-        </div>
-
-        {/* Error State */}
-        {step === 'error' && error && (
-          <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm space-y-2">
-            <p className="text-sm text-slate-500">{error}</p>
-            {onRetry && (
-              <button
-                onClick={onRetry}
-                className="text-sm text-slate-600 hover:text-slate-800 underline underline-offset-2 transition-colors"
-              >
-                Try again
-              </button>
-            )}
+            </p>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+
+      {/* Error State */}
+      {step === 'error' && error && (
+        <div className="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-xl border border-slate-200 shadow-sm space-y-2">
+          <p className="text-sm text-slate-500">{error}</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="text-sm text-slate-600 hover:text-slate-800 underline underline-offset-2 transition-colors"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

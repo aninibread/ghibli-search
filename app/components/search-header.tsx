@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent, type DragEvent } from "react";
-import { ImageSearchProgress, ImageSearchQueryDisplay, type ImageSearchState } from "./image-search-progress";
+import { MobileImageSearchProgress, ImageSearchQueryDisplay, type ImageSearchState } from "./image-search-progress";
 
 interface SearchHeaderProps {
   onSearch: (query: string, preserveImageSearch?: boolean) => void;
@@ -432,6 +432,16 @@ export function SearchHeader({
 
 
           </form>
+
+          {/* Mobile: Image search progress - appears above search bar due to flex-col-reverse */}
+          {hasResults && imageSearchState && imageSearchState.step !== 'idle' && (
+            <div className="sm:hidden">
+              <MobileImageSearchProgress 
+                state={imageSearchState} 
+                onRetry={onRetryImageSearch} 
+              />
+            </div>
+          )}
 
           <div className={`transition-all duration-700 ease-in-out overflow-hidden ${
             hasResults || isExiting ? "opacity-0 max-h-0" : "opacity-100 max-h-20 sm:mt-6"

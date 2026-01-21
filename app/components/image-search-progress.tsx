@@ -88,8 +88,8 @@ export function ImageSearchProgress({ state, onRetry }: ImageSearchProgressProps
           </details>
         </div>
 
-        {/* Mobile: floating button above search bar */}
-        <div className="sm:hidden fixed bottom-24 left-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+        {/* Mobile: floating button above search bar - account for search bar height (~4.5rem) + bottom-8 (2rem) + gap */}
+        <div className="sm:hidden fixed bottom-[calc(7rem+env(safe-area-inset-bottom,0px))] left-4 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <details className="group">
             <summary className="cursor-pointer list-none flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-slate-500 hover:text-slate-600 px-3 py-2 rounded-full border border-slate-200 shadow-md text-sm">
               <svg 
@@ -204,8 +204,8 @@ export function ImageSearchProgress({ state, onRetry }: ImageSearchProgressProps
         )}
       </div>
 
-      {/* Mobile: fixed above search bar, stacking bottom to top */}
-      <div className="sm:hidden fixed bottom-24 left-4 right-4 z-40 flex flex-col-reverse gap-2 items-start">
+      {/* Mobile: fixed above search bar, stacking bottom to top - account for search bar height (~4.5rem) + bottom-8 (2rem) + gap */}
+      <div className="sm:hidden fixed bottom-[calc(7rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-40 flex flex-col-reverse gap-2 items-start">
         {/* Step 3: Searching - at bottom (closest to search bar) */}
         {(step === 'searching' || (step === 'done' && collapseStage < 1)) && (
           <div className={`bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full border border-slate-200 shadow-sm ${getCollapseClass(1)}`}>

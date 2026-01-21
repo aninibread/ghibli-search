@@ -1,0 +1,48 @@
+{
+	"name": "ghibli-search",
+	"version": "1.0.0",
+	"description": "A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare AI",
+	"author": "aninibread",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/aninibread/ghibli-search.git"
+	},
+	"keywords": [
+		"studio-ghibli",
+		"semantic-search",
+		"cloudflare-workers",
+		"react-router",
+		"ai-search",
+		"autorag"
+	],
+	"type": "module",
+	"scripts": {
+		"build": "react-router build",
+		"cf-typegen": "wrangler types",
+		"deploy": "npm run build && wrangler deploy",
+		"dev": "react-router dev",
+		"postinstall": "npm run cf-typegen",
+		"preview": "npm run build && vite preview",
+		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
+	},
+	"dependencies": {
+		"isbot": "^5.1.31",
+		"react": "^19.1.1",
+		"react-dom": "^19.1.1",
+		"react-router": "^7.10.0"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.13.5",
+		"@react-router/dev": "^7.10.0",
+		"@tailwindcss/vite": "^4.1.13",
+		"@types/node": "^22",
+		"@types/react": "^19.1.13",
+		"@types/react-dom": "^19.1.9",
+		"tailwindcss": "^4.1.13",
+		"typescript": "^5.9.2",
+		"vite": "^7.1.7",
+		"vite-tsconfig-paths": "^5.1.4",
+		"wrangler": "^4.54.0"
+	}
+}

@@ -1,0 +1,51 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "ghibli-search",
+	// account_id is inferred from `wrangler login` - no need to hardcode it
+	"compatibility_date": "2025-04-04",
+	"main": "./workers/app.ts",
+	"observability": {
+		"enabled": true
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	// R2 buckets for image storage - replace with your own bucket names
+	"r2_buckets": [
+		{
+			"binding": "GHIBLI_BUCKET",
+			"bucket_name": "studio-ghibli-stills", // Your main image bucket
+			"remote": true
+		},
+		{
+			"binding": "THUMBNAILS_BUCKET",
+			"bucket_name": "studio-ghibli-thumbnails", // Your thumbnails bucket
+			"remote": true
+		}
+	]
+	/**
+	 * Smart Placement
+	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+	 */
+	// "placement": {  "mode": "smart" }
+	/**
+	 * Bindings
+	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+	 * databases, object storage, AI inference, real-time communication and more.
+	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+	 */
+	/**
+	 * Static Assets
+	 * https://developers.cloudflare.com/workers/static-assets/binding/
+	 */
+	// "assets": {  "directory": "./public/",  "binding": "ASSETS" }
+	/**
+	 * Service Bindings (communicate between multiple Workers)
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+	 */
+	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+}

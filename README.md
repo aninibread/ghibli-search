@@ -1,6 +1,6 @@
 # Studio Ghibli Search
 
-A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare AI.
+A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare Developer Platform.
 
 **Live Demo:** [ghibli-search.anini.workers.dev](https://ghibli-search.anini.workers.dev/)
 
@@ -18,21 +18,6 @@ A semantic search engine for Studio Ghibli movie stills, powered by Cloudflare A
 ## Architecture
 
 ![Architecture](assets/architecture.png)
-
-The app runs entirely on Cloudflare's Developer Platform:
-
-**Search Flow:**
-- **Text search** - Queries go through `/api/rewrite-query` (Llama 3.1 8B enhances the query) → `/api/search` (AI Search performs vector search) → Results returned to browser
-- **Image search** - Uploaded images go to `/api/analyze-image` (Workers AI converts image to text description) → `/api/rewrite-query` → `/api/search` → Results
-
-**Asset Delivery:**
-- **Thumbnails** (`/thumbnails/*`) - Pre-generated 480px WebP images (~21MB total) served from R2 for fast grid loading
-- **Full images** (`/images/*`) - Original high-resolution PNGs (~3.1GB total) served from R2 for lightbox view
-
-**Backend Services:**
-- **Cloudflare R2** - Object storage for 1,300+ movie stills
-- **Cloudflare AI Search** - Vector search index for semantic image retrieval
-- **Workers AI** - Llama 3.1 8B for query rewriting, toMarkdown for image-to-text conversion
 
 ## Tech Stack
 

@@ -68,9 +68,17 @@ Edit `wrangler.jsonc` and update the resource names to match your Cloudflare con
 ```jsonc
 {
   "name": "your-app-name",
+  "compatibility_date": "2026-03-27", // Required for AI Search bindings
   "ai": {
-    "binding": "AI"  // Required for AI Search
+    "binding": "AI"  // Workers AI (image analysis + query rewrite)
   },
+  "ai_search": [
+    {
+      "binding": "GHIBLI_SEARCH",
+      "instance_name": "your-ai-search-instance", // Your AI Search instance name
+      "remote": true
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "GHIBLI_BUCKET",
@@ -84,7 +92,9 @@ Edit `wrangler.jsonc` and update the resource names to match your Cloudflare con
 }
 ```
 
-> **Note:** The `THUMBNAILS_BUCKET` is optional. If not configured, the app will serve images directly from `GHIBLI_BUCKET`.
+> **Note:** Search uses the `ai_search` Workers binding (`env.GHIBLI_SEARCH`), not the legacy `env.AI.autorag()` API. See [Workers binding migration](https://developers.cloudflare.com/ai-search/api/migration/workers-binding/).
+>
+> The `THUMBNAILS_BUCKET` is optional. If not configured, the app will serve images directly from `GHIBLI_BUCKET`.
 
 ### 4. Login to Cloudflare
 

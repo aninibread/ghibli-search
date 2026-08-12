@@ -14,8 +14,26 @@ export interface SearchResponse {
   query: string;
 }
 
+/** Normalized search hit used by parseSearchResults */
 export interface AISearchResult {
   filename: string;
   score: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Chunk shape returned by the AI Search Workers binding
+ * (env.GHIBLI_SEARCH.search → { chunks: [...] }).
+ * Legacy AutoRAG used data[].filename; new API uses chunks[].item.key.
+ */
+export interface AISearchChunk {
+  id?: string;
+  score: number;
+  text?: string;
+  item?: {
+    key?: string;
+    timestamp?: number | string;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
 }

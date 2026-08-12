@@ -13,17 +13,21 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }
 
   try {
-    const searchResult = await context.cloudflare.env.AI.autorag(
-      "studio-ghibli-google"
-    ).search({
-      query,
-      max_num_results: 30,
-      ranking_options: {
-        score_threshold: 0.25,
+    // New AI Search Workers binding (replaces env.AI.autorag(...).search)
+    // https://developers.cloudflare.com/ai-search/api/migration/workers-binding/
+    const searchResult = await context.cloudflare.env.GHIBLI_SEARCH.search({
+      messages: [{ role: "user", content: query }],
+      ai_search_options: {
+        retrieval: {
+          max_num_results: 30,
+          // Legacy ranking_options.score_threshold → match_threshold
+          match_threshold: 0.25,
+        },
       },
     });
 
-    const results = parseSearchResults(searchResult.data);
+    // Response shape changed: data[] → chunks[] (filename is now chunks[].item.key)
+    const results = parseSearchResults(searchResult.chunks ?? []);
 
     return Response.json({
       results,

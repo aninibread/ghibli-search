@@ -57,7 +57,6 @@ export async function action({ request, context }: Route.ActionArgs) {
 
     // Use llama model for query rewriting (non-streaming)
     const result = await context.cloudflare.env.AI.run(
-      // @ts-expect-error - model exists but types may be outdated
       "@cf/meta/llama-3.1-8b-instruct",
       {
         messages: [

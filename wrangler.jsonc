@@ -6,14 +6,25 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "ghibli-search",
 	// account_id is inferred from `wrangler login` - no need to hardcode it
-	"compatibility_date": "2025-04-04",
+	// AI Search bindings require compatibility_date >= 2026-03-27
+	"compatibility_date": "2026-03-27",
 	"main": "./workers/app.ts",
 	"observability": {
 		"enabled": true
 	},
+	// Workers AI binding — still used by image analysis (toMarkdown) and query rewrite (AI.run)
 	"ai": {
 		"binding": "AI"
 	},
+	// AI Search instance binding (replaces legacy env.AI.autorag("studio-ghibli-google"))
+	// See: https://developers.cloudflare.com/ai-search/api/migration/workers-binding/
+	"ai_search": [
+		{
+			"binding": "GHIBLI_SEARCH",
+			"instance_name": "studio-ghibli-google",
+			"remote": true
+		}
+	],
 	// R2 buckets for image storage - replace with your own bucket names
 	"r2_buckets": [
 		{

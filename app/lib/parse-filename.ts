@@ -1,4 +1,4 @@
-import type { GhibliImage, AISearchResult } from "./types";
+import type { GhibliImage, AISearchChunk } from "./types";
 import { getMovieSlug } from "./movie-slugs";
 import { getThumbnailUrl, getFullImageUrl } from "./image-urls";
 
@@ -42,8 +42,15 @@ export function parseFilename(filename: string, score: number): GhibliImage {
 }
 
 /**
- * Parse multiple AI Search results into GhibliImage objects
+ * Parse AI Search binding chunks into GhibliImage objects.
+ * New API: chunks[].item.key (was data[].filename on legacy AutoRAG).
  */
-export function parseSearchResults(results: AISearchResult[]): GhibliImage[] {
-  return results.map((result) => parseFilename(result.filename, result.score));
+export function parseSearchResults(chunks: AISearchChunk[]): GhibliImage[] {
+  return chunks
+    .map((chunk) => {
+      const filename = chunk.item?.key;
+      if (!filename) return null;
+      return parseFilename(filename, chunk.score ?? 0);
+    })
+    .filter((image): image is GhibliImage => image !== null);
 }

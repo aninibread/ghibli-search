@@ -42,15 +42,38 @@ export function parseFilename(filename: string, score: number): GhibliImage {
 }
 
 /**
+ * Extract the R2 object key / filename from an AI Search chunk.
+ * Prefer the new binding field (item.key); fall back to legacy-shaped fields
+ * in case an older response shape is still returned.
+ */
+function chunkFilename(chunk: AISearchChunk): string | null {
+  const key = chunk.item?.key;
+  if (typeof key === "string" && key.length > 0) return key;
+
+  const legacy = chunk.filename;
+  if (typeof legacy === "string" && legacy.length > 0) return legacy;
+
+  return null;
+}
+
+/**
  * Parse AI Search binding chunks into GhibliImage objects.
- * New API: chunks[].item.key (was data[].filename on legacy AutoRAG).
+ * Dedupes by filename (hybrid/rerank can surface multiple chunks per still)
+ * and keeps the highest-scoring hit for each image.
  */
 export function parseSearchResults(chunks: AISearchChunk[]): GhibliImage[] {
-  return chunks
-    .map((chunk) => {
-      const filename = chunk.item?.key;
-      if (!filename) return null;
-      return parseFilename(filename, chunk.score ?? 0);
-    })
-    .filter((image): image is GhibliImage => image !== null);
+  const bestByFilename = new Map<string, GhibliImage>();
+
+  for (const chunk of chunks) {
+    const filename = chunkFilename(chunk);
+    if (!filename) continue;
+
+    const image = parseFilename(filename, chunk.score ?? 0);
+    const existing = bestByFilename.get(filename);
+    if (!existing || image.score > existing.score) {
+      bestByFilename.set(filename, image);
+    }
+  }
+
+  return Array.from(bestByFilename.values()).sort((a, b) => b.score - a.score);
 }

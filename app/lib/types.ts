@@ -12,6 +12,8 @@ export interface GhibliImage {
 export interface SearchResponse {
   results: GhibliImage[];
   query: string;
+  /** Query actually used for retrieval (may be rewritten by AI Search) */
+  searchQuery?: string;
 }
 
 /** Normalized search hit used by parseSearchResults */

@@ -21,7 +21,7 @@
 	"ai_search": [
 		{
 			"binding": "GHIBLI_SEARCH",
-			"instance_name": "studio-ghibli",
+			"instance_name": "studio-ghibli-google",
 			"remote": true
 		}
 	],

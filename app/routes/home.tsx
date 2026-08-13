@@ -27,9 +27,18 @@ const initialImageSearchState: ImageSearchState = {
   error: null,
 };
 
-export default function Home() {
-  // Check URL synchronously to initialize states correctly
-  const urlHasQuery = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('query');
+// Read the URL on the server so SSR and hydration agree on the initial state.
+export function loader({ request }: Route.LoaderArgs) {
+  const url = new URL(request.url);
+  return {
+    urlQuery: url.searchParams.get('query'),
+    urlImage: url.searchParams.get('image'),
+  };
+}
+
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const { urlQuery, urlImage } = loaderData;
+  const urlHasQuery = urlQuery !== null;
 
   const [results, setResults] = useState<GhibliImage[]>([]);
   const [isLoading, setIsLoading] = useState(urlHasQuery); // Start loading if URL has query
@@ -40,12 +49,7 @@ export default function Home() {
   const [resetKey, setResetKey] = useState(0);
   const [isExitingBackground, setIsExitingBackground] = useState(urlHasQuery);
   const [showSuggestionsExit, setShowSuggestionsExit] = useState(urlHasQuery);
-  const [initialQuery, setInitialQuery] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search).get('query');
-    }
-    return null;
-  });
+  const [initialQuery, setInitialQuery] = useState<string | null>(urlQuery);
   const [skipTransition, setSkipTransition] = useState(urlHasQuery);
   const hasLoadedFromUrl = useRef(urlHasQuery);
 
@@ -93,12 +97,8 @@ export default function Home() {
     }
   };
 
-  // Check URL for query and image on mount
+  // Load results for a query or image that came in through the URL
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlQuery = params.get('query');
-    const urlImage = params.get('image');
-
     const loadFromUrl = async () => {
       if (urlQuery) {
         await performSearchFromUrl(urlQuery);
@@ -293,7 +293,7 @@ export default function Home() {
         setImageSearch(prev => ({
           ...prev,
           step: 'error',
-          error: searchData.error,
+          error: searchData.error ?? null,
         }));
       } else {
         setResults(searchData.results || []);

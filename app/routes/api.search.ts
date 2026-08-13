@@ -34,7 +34,16 @@ async function searchWithRetry(
   for (let attempt = 1; attempt <= SEARCH_ATTEMPTS; attempt++) {
     try {
       return await ghibliSearch.search({
-        query
+        query,
+        ai_search_options: {
+          retrieval: {
+            retrieval_type: "vector",
+            match_threshold: 0.2,
+            max_num_results: 30,
+          },
+          reranking: { enabled: true, match_threshold: 0.02 },
+          cache: { enabled: false },
+        },
       });
     } catch (error) {
       lastError = error;

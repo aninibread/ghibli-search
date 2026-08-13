@@ -42,7 +42,7 @@ This app binds to **remote** Cloudflare resources (see `wrangler.jsonc`). Local 
 |---|---|---|
 | `GHIBLI_BUCKET` | R2 | `studio-ghibli-stills` |
 | `THUMBNAILS_BUCKET` | R2 | `studio-ghibli-thumbnails` |
-| `GHIBLI_SEARCH` | AI Search instance | `studio-ghibli-google` (R2 source: `studio-ghibli-stills`) |
+| `GHIBLI_SEARCH` | AI Search instance | `studio-ghibli` (R2 source: `studio-ghibli-stills`) |
 | `AI` | Workers AI | image analysis (`toMarkdown`) and query rewrite (`AI.run`) |
 
 Stills use this key layout:
@@ -92,14 +92,14 @@ npx wrangler r2 bucket info studio-ghibli-thumbnails
 Create the search instance with the [AI Search CLI](https://developers.cloudflare.com/ai-search/wrangler-commands/), pointing it at the stills bucket so it indexes those objects in place. Do not copy files into built-in storage.
 
 ```bash
-npx wrangler ai-search create studio-ghibli-google --type r2 --source studio-ghibli-stills --hybrid-search
+npx wrangler ai-search create studio-ghibli --type r2 --source studio-ghibli-stills --hybrid-search
 ```
 
 R2 sources index on a [sync schedule](https://developers.cloudflare.com/ai-search/configuration/indexing/syncing/). Check progress and try a query:
 
 ```bash
-npx wrangler ai-search stats studio-ghibli-google
-npx wrangler ai-search search studio-ghibli-google --query totoro
+npx wrangler ai-search stats studio-ghibli
+npx wrangler ai-search search studio-ghibli --query totoro
 ```
 
 Search returns nothing while **Indexed** is `0`. If you use a different instance name or bucket, update `wrangler.jsonc` to match.

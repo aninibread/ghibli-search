@@ -34,19 +34,7 @@ async function searchWithRetry(
   for (let attempt = 1; attempt <= SEARCH_ATTEMPTS; attempt++) {
     try {
       return await ghibliSearch.search({
-        query,
-        ai_search_options: {
-          // Instance defaults enable reranking; that is too slow through the
-          // local remote-binding proxy and often hits DownstreamConfigApiError.
-          retrieval: {
-            retrieval_type: "hybrid",
-            return_on_failure: true,
-            max_num_results: 10,
-          },
-          query_rewrite: { enabled: false },
-          reranking: { enabled: false },
-          cache: { enabled: true },
-        },
+        query
       });
     } catch (error) {
       lastError = error;

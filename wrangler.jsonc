@@ -16,12 +16,12 @@
 	"ai": {
 		"binding": "AI"
 	},
-	// AI Search instance binding (replaces legacy env.AI.autorag("studio-ghibli-google"))
+	// AI Search instance binding (replaces legacy env.AI.autorag())
 	// See: https://developers.cloudflare.com/ai-search/api/migration/workers-binding/
 	"ai_search": [
 		{
 			"binding": "GHIBLI_SEARCH",
-			"instance_name": "studio-ghibli-google",
+			"instance_name": "studio-ghibli",
 			"remote": true
 		}
 	],

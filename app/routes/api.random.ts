@@ -29,7 +29,7 @@ export async function loader({ context }: Route.LoaderArgs) {
 
     // Filter to only image files and shuffle
     const imageFiles = listed.objects
-      .filter(obj => obj.key.endsWith('.png') || obj.key.endsWith('.jpg') || obj.key.endsWith('.jpeg'))
+      .filter(obj => /\.(png|jpe?g|webp)$/i.test(obj.key))
       .sort(() => Math.random() - 0.5);
 
     // Take random 7 images

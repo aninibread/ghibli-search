@@ -9,8 +9,8 @@
  * Get thumbnail URL for grid display (pre-generated 480px WebP)
  */
 export function getThumbnailUrl(imagePath: string): string {
-  // Thumbnails are .webp, originals are .png
-  const webpPath = imagePath.replace(/\.png$/i, '.webp');
+  // Search keys may be .webp (built-in index) or .png (legacy R2 index).
+  const webpPath = imagePath.replace(/\.png$/i, ".webp");
   return `/thumbnails/${encodeURIComponent(webpPath)}`;
 }
 
@@ -18,12 +18,14 @@ export function getThumbnailUrl(imagePath: string): string {
  * Get full-size URL for lightbox display (original PNG)
  */
 export function getFullImageUrl(imagePath: string): string {
-  return `/images/${encodeURIComponent(imagePath)}`;
+  const pngPath = imagePath.replace(/\.webp$/i, ".png");
+  return `/images/${encodeURIComponent(pngPath)}`;
 }
 
 /**
  * Get the original image URL (same as full-size, for fallback)
  */
 export function getOriginalImageUrl(imagePath: string): string {
-  return `/images/${encodeURIComponent(imagePath)}`;
+  const pngPath = imagePath.replace(/\.webp$/i, ".png");
+  return `/images/${encodeURIComponent(pngPath)}`;
 }

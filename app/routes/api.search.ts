@@ -1,6 +1,56 @@
 import type { Route } from "./+types/api.search";
 import { parseSearchResults } from "../lib/parse-filename";
 
+const SEARCH_ATTEMPTS = 3;
+
+type SearchResult = Awaited<
+  ReturnType<Env["GHIBLI_SEARCH"]["search"]>
+>;
+
+const inflightSearches = new Map<string, Promise<SearchResult>>();
+
+function isRetryableSearchError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /timeout|aborted|DownstreamConfigApiError/i.test(message);
+}
+
+function searchErrorMessage(error: unknown): string {
+  if (isRetryableSearchError(error)) {
+    return "Search timed out. Try again in a moment.";
+  }
+  return error instanceof Error ? error.message : "Failed to perform search";
+}
+
+function errorSummary(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function searchWithRetry(
+  ghibliSearch: Env["GHIBLI_SEARCH"],
+  query: string
+): Promise<SearchResult> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= SEARCH_ATTEMPTS; attempt++) {
+    try {
+      return await ghibliSearch.search({
+        query
+      });
+    } catch (error) {
+      lastError = error;
+      console.warn(`Search attempt ${attempt}/${SEARCH_ATTEMPTS} failed: ${errorSummary(error)}`);
+      if (!isRetryableSearchError(error) || attempt === SEARCH_ATTEMPTS) {
+        throw error;
+      }
+      await scheduler.wait(500 * attempt);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Failed to perform search");
+}
+
 export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
@@ -13,27 +63,27 @@ export async function loader({ request, context }: Route.LoaderArgs) {
   }
 
   try {
-    const searchResult = await context.cloudflare.env.AI.autorag(
-      "studio-ghibli-google"
-    ).search({
-      query,
-      max_num_results: 30,
-      ranking_options: {
-        score_threshold: 0.25,
-      },
-    });
+    let pending = inflightSearches.get(query);
+    if (!pending) {
+      pending = searchWithRetry(
+        context.cloudflare.env.GHIBLI_SEARCH,
+        query
+      ).finally(() => {
+        inflightSearches.delete(query);
+      });
+      inflightSearches.set(query, pending);
+    }
 
-    const results = parseSearchResults(searchResult.data);
+    const searchResult = await pending;
+    const results = parseSearchResults(searchResult.chunks ?? []);
 
     return Response.json({
       results,
       query,
+      searchQuery: searchResult.search_query ?? query,
     });
   } catch (error) {
-    console.error("Search error:", error);
-    return Response.json(
-      { error: "Failed to perform search" },
-      { status: 500 }
-    );
+    console.warn("Search error:", errorSummary(error));
+    return Response.json({ error: searchErrorMessage(error) }, { status: 503 });
   }
 }

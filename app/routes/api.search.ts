@@ -41,8 +41,6 @@ async function searchWithRetry(
             match_threshold: 0.2,
             max_num_results: 30,
           },
-          reranking: { enabled: true, match_threshold: 0.02 },
-          cache: { enabled: false },
         },
       });
     } catch (error) {

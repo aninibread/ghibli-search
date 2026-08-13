@@ -14,6 +14,7 @@ export interface SearchResponse {
   query: string;
   /** Query actually used for retrieval (may be rewritten by AI Search) */
   searchQuery?: string;
+  error?: string;
 }
 
 /** Normalized search hit used by parseSearchResults */

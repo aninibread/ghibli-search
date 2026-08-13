@@ -51,6 +51,7 @@ export default function Home() {
 
   // Multi-step image search state
   const [imageSearch, setImageSearch] = useState<ImageSearchState>(initialImageSearchState);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const currentFileRef = useRef<File | null>(null);
 
   const openImageFromUrl = async (filename: string) => {
@@ -71,13 +72,21 @@ export default function Home() {
   const performSearchFromUrl = async (query: string) => {
     // States are already initialized correctly, just fetch results
     setIsLoading(true);
+    setSearchError(null);
 
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
       const data: SearchResponse = await response.json();
-      setResults(data.results || []);
+      if (data.error) {
+        setSearchError(data.error);
+        setResults([]);
+      } else {
+        setSearchError(null);
+        setResults(data.results || []);
+      }
     } catch (error) {
       console.error("Search failed:", error);
+      setSearchError("Search failed. Try again in a moment.");
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -138,6 +147,7 @@ export default function Home() {
 
   const handleSearch = useCallback(async (query: string, preserveImageSearch = false) => {
     setIsLoading(true);
+    setSearchError(null);
     // Clear image search state unless we're re-searching with the same image query
     if (!preserveImageSearch) {
       setImageSearch(initialImageSearchState);
@@ -163,9 +173,15 @@ export default function Home() {
     try {
       const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
       const data: SearchResponse = await response.json();
-      setResults(data.results || []);
+      if (data.error) {
+        setSearchError(data.error);
+        setResults([]);
+      } else {
+        setResults(data.results || []);
+      }
     } catch (error) {
       console.error("Search failed:", error);
+      setSearchError("Search failed. Try again in a moment.");
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -270,12 +286,22 @@ export default function Home() {
       
       const searchResponse = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
       const searchData: SearchResponse = await searchResponse.json();
-      
-      setResults(searchData.results || []);
-      setImageSearch(prev => ({
-        ...prev,
-        step: 'done',
-      }));
+
+      if (searchData.error) {
+        setSearchError(searchData.error);
+        setResults([]);
+        setImageSearch(prev => ({
+          ...prev,
+          step: 'error',
+          error: searchData.error,
+        }));
+      } else {
+        setResults(searchData.results || []);
+        setImageSearch(prev => ({
+          ...prev,
+          step: 'done',
+        }));
+      }
 
     } catch (error) {
       console.error("Image search failed:", error);
@@ -311,6 +337,7 @@ export default function Home() {
     window.history.replaceState(null, '', window.location.pathname); // Clear URL query
     setInitialQuery(null);
     setImageSearch(initialImageSearchState); // Clear image search state
+    setSearchError(null);
     currentFileRef.current = null;
   }, []);
 
@@ -358,10 +385,11 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center px-6 py-20 sm:py-32">
           <div className="text-6xl sm:text-8xl mb-6 opacity-40">🍃</div>
           <h2 className="text-xl sm:text-2xl font-serif text-slate-600 mb-2 text-center">
-            No dreams found here...
+            {searchError ? "The search drifted away..." : "No dreams found here..."}
           </h2>
           <p className="text-slate-400 text-sm sm:text-base text-center max-w-sm">
-            The spirits couldn't find what you're looking for. Try searching for something else.
+            {searchError ??
+              "The spirits couldn't find what you're looking for. Try searching for something else."}
           </p>
         </div>
       )}

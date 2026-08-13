@@ -19,9 +19,12 @@ export async function loader({ params, context }: Route.LoaderArgs) {
     }
 
     const headers = new Headers();
+    const fallbackType = key.toLowerCase().endsWith(".webp")
+      ? "image/webp"
+      : "image/png";
     headers.set(
       "Content-Type",
-      object.httpMetadata?.contentType || "image/png"
+      object.httpMetadata?.contentType || fallbackType
     );
     headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
